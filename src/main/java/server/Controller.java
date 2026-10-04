@@ -844,6 +844,19 @@ public class Controller implements IMessageHandler {
         }
     }
 
+    private boolean isAsciiLetterName(String name) {
+        if (name == null || name.length() < 3 || name.length() > 20) {
+            return false;
+        }
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void createChar(MySession session, Message msg) {
         if (!Maintenance.isRunning) {
             DatabaseResultSet rs = null;
@@ -852,31 +865,27 @@ public class Controller implements IMessageHandler {
                 String name = msg.reader().readUTF();
                 int gender = msg.reader().readByte();
                 int hair = msg.reader().readByte();
-                if (name.length() >= 5 && name.length() <= 10) {
+                if (isAsciiLetterName(name)) {
                     rs = DatabaseManager.executeQuery("select * from player where name = ?", name);
                     if (rs.first()) {
                         Service.gI().sendThongBaoOK(session, "Tên nhân vật đã tồn tại");
                     } else {
-                        if (Util.haveSpecialCharacter(name)) {
-                            Service.gI().sendThongBaoOK(session, "Tên nhân vật không được chứa ký tự đặc biệt");
-                        } else {
-                            boolean isNotIgnoreName = true;
-                            for (String n : ConstIgnoreName.IGNORE_NAME) {
-                                if (name.equals(n)) {
-                                    Service.gI().sendThongBaoOK(session, "Tên nhân vật đã tồn tại");
-                                    isNotIgnoreName = false;
-                                    break;
-                                }
+                        boolean isNotIgnoreName = true;
+                        for (String n : ConstIgnoreName.IGNORE_NAME) {
+                            if (name.equals(n)) {
+                                Service.gI().sendThongBaoOK(session, "Tên nhân vật đã tồn tại");
+                                isNotIgnoreName = false;
+                                break;
                             }
-                            if (isNotIgnoreName) {
-                                created = PlayerDAO.createNewPlayer(session.userId, name.toLowerCase(), (byte) gender,
-                                        hair);
-                            }
+                        }
+                        if (isNotIgnoreName) {
+                            created = PlayerDAO.createNewPlayer(session.userId, name.toLowerCase(), (byte) gender,
+                                    hair);
                         }
                     }
                 } else {
                     Service.gI().sendThongBaoOK(session,
-                            "Tên nhân vật chỉ đồng ý các ký tự a-z, 0-9 và chiều dài từ 5 đến 10 ký tự");
+                            "Tên nhân vật chỉ gồm chữ cái A-Z, a-z và dài từ 3 đến 20 ký tự");
                 }
             } catch (Exception e) {
                 Logger.logException(Controller.class, e);

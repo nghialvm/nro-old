@@ -8,10 +8,12 @@ import consts.ConstIgnoreName;
 import consts.ConstMap;
 import consts.ConstNpc;
 import consts.ConstTask;
+import consts.Cmd_message;
 import data.DataGame;
 import data.ItemData;
 import database.DatabaseManager;
 import database.DatabaseResultSet;
+import database.NTTSqlFetcher;
 import database.PlayerDAO;
 import database.SuperRankDAO;
 import deputyhead.service.BlackBallWarService;
@@ -708,10 +710,22 @@ public class Controller implements IMessageHandler {
     public void messageNotLogin(MySession session, Message msg) {
         if (msg != null) {
             try {
+                if (msg.reader().available() <= 0) {
+                    Service.gI().sendThongBaoOK(session, "\u0050\u0061\u0063\u006b\u0065\u0074 \u0111\u0103ng k\u00fd kh\u00f4ng h\u1ee3p l\u1ec7");
+                    return;
+                }
                 byte cmd = msg.reader().readByte();
                 switch (cmd) {
                     case 0:
                         session.login(msg.reader().readUTF(), msg.reader().readUTF());
+                        break;
+                    case Cmd_message.REGISTER:
+                        try {
+                            NTTSqlFetcher.register(session, msg.reader().readUTF(), msg.reader().readUTF());
+                        } catch (IOException e) {
+                            Service.gI().sendThongBaoOK(session,
+                                    "\u0050\u0061\u0063\u006b\u0065\u0074 \u0111\u0103ng k\u00fd kh\u00f4ng h\u1ee3p l\u1ec7");
+                        }
                         break;
                     case 2:
                         Service.gI().setClientType(session, msg);

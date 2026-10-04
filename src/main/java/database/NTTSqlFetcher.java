@@ -50,6 +50,72 @@ import utils.Util;
 
 public class NTTSqlFetcher {
 
+    private static final String REGISTER_SUCCESS_MESSAGE = "\u0110\u0103ng k\u00fd t\u00e0i kho\u1ea3n th\u00e0nh c\u00f4ng";
+
+    public static void register(MySession session, String username, String password) {
+        DatabaseResultSet rs = null;
+        try {
+            username = username == null ? "" : username.trim();
+            if (username.isEmpty()) {
+                Service.gI().sendThongBaoOK(session, "\u0042\u1ea1n ch\u01b0a nh\u1eadp t\u00e0i kho\u1ea3n");
+                return;
+            }
+            if (username.length() < 5 || username.length() > 20 || Util.haveSpecialCharacter(username)) {
+                Service.gI().sendThongBaoOK(session,
+                        "\u0054\u00e0i kho\u1ea3n ch\u1ec9 g\u1ed3m ch\u1eef c\u00e1i v\u00e0 s\u1ed1, d\u00e0i t\u1eeb 5 \u0111\u1ebfn 20 k\u00fd t\u1ef1");
+                return;
+            }
+            if (password == null || password.length() < 6 || password.length() > 100) {
+                Service.gI().sendThongBaoOK(session,
+                        "\u004d\u1eadt kh\u1ea9u ph\u1ea3i d\u00e0i t\u1eeb 6 \u0111\u1ebfn 100 k\u00fd t\u1ef1");
+                return;
+            }
+
+            rs = DatabaseManager.executeQuery("select id from account where username = ? limit 1", username);
+            if (rs.first()) {
+                Service.gI().sendThongBaoOK(session, "\u0054\u00e0i kho\u1ea3n \u0111\u00e3 t\u1ed3n t\u1ea1i");
+                return;
+            }
+
+            int affectedRows = DatabaseManager.executeUpdate(
+                    "insert into account (username, password, email, token, xsrf_token, newpass) values (?, ?, '', '', '', '')",
+                    username, password);
+            if (affectedRows != 1) {
+                Service.gI().sendThongBaoOK(session,
+                        "\u0110\u0103ng k\u00fd th\u1ea5t b\u1ea1i, vui l\u00f2ng th\u1eed l\u1ea1i sau");
+                return;
+            }
+            Service.gI().sendThongBaoOK(session, REGISTER_SUCCESS_MESSAGE);
+        } catch (Exception e) {
+            if (isDuplicateAccountError(e)) {
+                Service.gI().sendThongBaoOK(session, "\u0054\u00e0i kho\u1ea3n \u0111\u00e3 t\u1ed3n t\u1ea1i");
+            } else {
+                Logger.logException(NTTSqlFetcher.class, e);
+                Service.gI().sendThongBaoOK(session,
+                        "\u0110\u0103ng k\u00fd th\u1ea5t b\u1ea1i, vui l\u00f2ng th\u1eed l\u1ea1i sau");
+            }
+        } finally {
+            if (rs != null) {
+                rs.dispose();
+            }
+        }
+    }
+
+    private static boolean isDuplicateAccountError(Exception ex) {
+        Throwable cause = ex;
+        while (cause != null) {
+            if (cause instanceof java.sql.SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            String message = cause.getMessage();
+            if (message != null && message.toLowerCase(java.util.Locale.ROOT).contains("duplicate")) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
     public static Player login(MySession session, AntiLogin al) {
         Player player = null;
         DatabaseResultSet rs = null;

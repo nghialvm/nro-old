@@ -14,7 +14,7 @@ server.maxplayer=1000
 server.expserver=1
 
 # Database
-database.driver=com.mysql.jdbc.Driver
+database.driver=org.mariadb.jdbc.Driver
 database.host=127.0.0.1
 database.port=3306
 database.name=nro

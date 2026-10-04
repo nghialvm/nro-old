@@ -172,7 +172,7 @@ public class DatabaseManager {
     private static HikariConfig createConfig(String poolName, String databaseName) {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName(DRIVER);
-        config.setJdbcUrl(String.format("jdbc:mysql://%s:%s/%s?useUnicode=yes&characterEncoding=UTF-8",
+        config.setJdbcUrl(String.format("jdbc:mariadb://%s:%s/%s?characterEncoding=UTF-8",
                 DB_HOST, DB_PORT, databaseName));
         config.setUsername(DB_USER);
         config.setPassword(DB_PASSWORD);
@@ -182,9 +182,7 @@ public class DatabaseManager {
         config.setPoolName(poolName);
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         config.addDataSourceProperty("useServerPrepStmts", "true");
-        ;
         return config;
     }
 }

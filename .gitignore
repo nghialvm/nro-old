@@ -1,0 +1,29 @@
+# Maven and legacy build output
+/target/
+/build/
+/dist/
+*.class
+*.jar
+
+# Local runtime configuration and logs
+/config/application.properties
+/log/
+*.log
+
+# IDE metadata
+/.idea/
+*.iml
+/.vscode/
+/nbproject/private/
+
+# Archives and temporary files
+*.zip
+*.rar
+*.7z
+*.tmp
+*.bak
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
